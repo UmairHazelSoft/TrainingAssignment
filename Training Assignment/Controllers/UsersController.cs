@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Training_Assignment.DTOs;
@@ -12,6 +13,7 @@ namespace Training_Assignment.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
