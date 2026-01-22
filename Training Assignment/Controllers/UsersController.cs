@@ -1,58 +1,73 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using Training_Assignment.DTOs;
 using Training_Assignment.Models;
+using Training_Assignment.Responses;
+using Training_Assignment.Services.Interfaces;
 
 namespace Training_Assignment.Controllers
 {
-    /// <summary>
-    /// Handles CRUD operations for users.
-    /// </summary>
+
+
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private static readonly List<User> Users = new();
-        private static int _nextId = 1;
+        private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        [HttpGet]
-        public IActionResult GetAllUsers() => Ok(Users);
+        public UsersController(IUserService userService, IMapper mapper)
+        {
+            _userService = userService;
+            _mapper = mapper;
+        }
 
-        [HttpGet("{id}")]
+        [HttpGet("all")]
+        public IActionResult GetAllUsers()
+        {
+            var users = _userService.GetAllUsers();
+            var response = _mapper.Map<List<UserResponseDto>>(users);
+            return Ok(new ApiResponse<List<UserResponseDto>>(true, "Users fetched successfully", response));
+        }
+
+        [HttpGet("{id:int}")]
         public IActionResult GetUserById(int id)
         {
-            var user = Users.FirstOrDefault(u => u.Id == id);
-            if (user == null) return NotFound("User not found.");
-            return Ok(user);
+            var user = _userService.GetUserById(id);
+            if (user == null) return NotFound(new ApiResponse<string>(false, "User not found", null));
+
+            var response = _mapper.Map<UserResponseDto>(user);
+            return Ok(new ApiResponse<UserResponseDto>(true, "User fetched successfully", response));
         }
 
-        [HttpPost]
-        public IActionResult CreateUser(User user)
+        [HttpPost("create")]
+        public IActionResult CreateUser([FromBody] CreateUserDto dto)
         {
-            user.Id = _nextId++;
-            Users.Add(user);
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+            var user = _mapper.Map<User>(dto);
+            var createdUser = _userService.CreateUser(user);
+            var response = _mapper.Map<UserResponseDto>(createdUser);
+            return Ok(new ApiResponse<UserResponseDto>(true, "User created successfully", response));
         }
 
-        [HttpPut("{id}")]
-        public IActionResult UpdateUser(int id, User updatedUser)
+        [HttpPut("update/{id:int}")]
+        public IActionResult UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
-            var user = Users.FirstOrDefault(u => u.Id == id);
-            if (user == null) return NotFound("User not found.");
+            var userToUpdate = _mapper.Map<User>(dto);
+            var updatedUser = _userService.UpdateUser(id, userToUpdate);
+            if (updatedUser == null) return NotFound(new ApiResponse<string>(false, "User not found", null));
 
-            user.Name = updatedUser.Name;
-            user.Email = updatedUser.Email;
-            user.Password = updatedUser.Password;
-
-            return Ok(user);
+            var response = _mapper.Map<UserResponseDto>(updatedUser);
+            return Ok(new ApiResponse<UserResponseDto>(true, "User updated successfully", response));
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id:int}")]
         public IActionResult DeleteUser(int id)
         {
-            var user = Users.FirstOrDefault(u => u.Id == id);
-            if (user == null) return NotFound("User not found.");
+            var deleted = _userService.DeleteUser(id);
+            if (!deleted) return NotFound(new ApiResponse<string>(false, "User not found", null));
 
-            Users.Remove(user);
-            return NoContent();
+            return Ok(new ApiResponse<string>(true, "User deleted successfully", null));
         }
     }
+
 }
