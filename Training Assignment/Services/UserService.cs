@@ -1,49 +1,66 @@
-﻿using Training_Assignment.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Training_Assignment.Data;
+using Training_Assignment.Models;
 using Training_Assignment.Services.Interfaces;
 
 namespace Training_Assignment.Services
 {
-    
 
     /// <summary>
-    /// User service implementing CRUD operations
+    /// Provides CRUD operations for users using Entity Framework Core.
     /// </summary>
     public class UserService : IUserService
     {
-        private readonly List<User> _users = new();
-        private int count = 0;
+        private readonly ApplicationDbContext _dbContext;
 
-        public List<User> GetAllUsers() => _users;
-
-        public User GetUserById(int id) => _users.FirstOrDefault(u => u.Id == id);
-
-        public User CreateUser(User user)
+        public UserService(ApplicationDbContext dbContext)
         {
-            user.Id = count + 1; // simple auto-increment
-            count++;
-            _users.Add(user);
+            _dbContext = dbContext;
+        }
+
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _dbContext.Users.ToListAsync();
+        }
+
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task<User> CreateUserAsync(User user)
+        {
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
             return user;
         }
 
-        public User UpdateUser(int id, User updatedUser)
+        public async Task<User?> UpdateUserAsync(int id, User updatedUser)
         {
-            var user = _users.FirstOrDefault(u => u.Id == id);
-            if (user == null) return null;
+            var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (existingUser == null)
+                return null;
 
-            user.Name = updatedUser.Name;
-            user.Email = updatedUser.Email;
-            user.Password = updatedUser.Password;
+            existingUser.Name = updatedUser.Name;
+            existingUser.Email = updatedUser.Email;
+            existingUser.Password = updatedUser.Password;
 
-            return user;
+            await _dbContext.SaveChangesAsync();
+            return existingUser;
         }
 
-        public bool DeleteUser(int id)
+        public async Task<bool> DeleteUserAsync(int id)
         {
-            var user = _users.FirstOrDefault(u => u.Id == id);
-            if (user == null) return false;
-            _users.Remove(user);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null)
+                return false;
+
+            _dbContext.Users.Remove(user);
+            await _dbContext.SaveChangesAsync();
             return true;
         }
     }
+
+
 
 }

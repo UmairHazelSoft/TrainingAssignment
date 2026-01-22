@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Training_Assignment.Data;
 using Training_Assignment.Services;
 using Training_Assignment.Services.Interfaces;
 
@@ -9,8 +11,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 
 

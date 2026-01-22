@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using Training_Assignment.DTOs;
 using Training_Assignment.Models;
 using Training_Assignment.Responses;
@@ -23,17 +24,17 @@ namespace Training_Assignment.Controllers
         }
 
         [HttpGet("all")]
-        public IActionResult GetAllUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
-            var users = _userService.GetAllUsers();
+            var users = await _userService.GetAllUsersAsync();
             var response = _mapper.Map<List<UserResponseDto>>(users);
             return Ok(new ApiResponse<List<UserResponseDto>>(true, "Users fetched successfully", response));
         }
 
         [HttpGet("{id:int}")]
-        public IActionResult GetUserById(int id)
+        public async Task<IActionResult> GetUserById(int id)
         {
-            var user = _userService.GetUserById(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound(new ApiResponse<string>(false, "User not found", null));
 
             var response = _mapper.Map<UserResponseDto>(user);
@@ -41,19 +42,19 @@ namespace Training_Assignment.Controllers
         }
 
         [HttpPost("create")]
-        public IActionResult CreateUser([FromBody] CreateUserDto dto)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
             var user = _mapper.Map<User>(dto);
-            var createdUser = _userService.CreateUser(user);
+            var createdUser = await _userService.CreateUserAsync(user);
             var response = _mapper.Map<UserResponseDto>(createdUser);
             return Ok(new ApiResponse<UserResponseDto>(true, "User created successfully", response));
         }
 
         [HttpPut("update/{id:int}")]
-        public IActionResult UpdateUser(int id, [FromBody] UpdateUserDto dto)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
             var userToUpdate = _mapper.Map<User>(dto);
-            var updatedUser = _userService.UpdateUser(id, userToUpdate);
+            var updatedUser = await _userService.UpdateUserAsync(id, userToUpdate);
             if (updatedUser == null) return NotFound(new ApiResponse<string>(false, "User not found", null));
 
             var response = _mapper.Map<UserResponseDto>(updatedUser);
@@ -61,9 +62,9 @@ namespace Training_Assignment.Controllers
         }
 
         [HttpDelete("delete/{id:int}")]
-        public IActionResult DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
-            var deleted = _userService.DeleteUser(id);
+            var deleted = await _userService.DeleteUserAsync(id);
             if (!deleted) return NotFound(new ApiResponse<string>(false, "User not found", null));
 
             return Ok(new ApiResponse<string>(true, "User deleted successfully", null));
