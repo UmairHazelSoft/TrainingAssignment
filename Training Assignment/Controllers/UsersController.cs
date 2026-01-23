@@ -26,11 +26,15 @@ namespace Training_Assignment.Controllers
         }
 
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers([FromQuery] PaginationParams pagination)
         {
-            var users = await _userService.GetAllUsersAsync();
-            var response = _mapper.Map<List<UserResponseDto>>(users);
-            return Ok(new ApiResponse<List<UserResponseDto>>(true, "Users fetched successfully", response));
+            var pagedResult = await _userService.GetPagedUsersAsync(pagination);
+
+            return Ok(new ApiResponse<PagedResult<UserReadDto>>(
+                true,
+                "Users fetched successfully",
+                pagedResult
+            ));
         }
 
         [HttpGet("{id:int}")]
@@ -39,15 +43,14 @@ namespace Training_Assignment.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound(new ApiResponse<string>(false, "User not found", null));
 
-            var response = _mapper.Map<UserResponseDto>(user);
-            return Ok(new ApiResponse<UserResponseDto>(true, "User fetched successfully", response));
+            var response = _mapper.Map<UserReadDto>(user);
+            return Ok(new ApiResponse<UserReadDto>(true, "User fetched successfully", response));
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
-            var user = _mapper.Map<User>(dto);
-            var createdUser = await _userService.CreateUserAsync(user);
+            var createdUser = await _userService.CreateUserAsync(dto);
             var response = _mapper.Map<UserResponseDto>(createdUser);
             return Ok(new ApiResponse<UserResponseDto>(true, "User created successfully", response));
         }
@@ -55,8 +58,7 @@ namespace Training_Assignment.Controllers
         [HttpPut("update/{id:int}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
-            var userToUpdate = _mapper.Map<User>(dto);
-            var updatedUser = await _userService.UpdateUserAsync(id, userToUpdate);
+            var updatedUser = await _userService.UpdateUserAsync(id, dto);
             if (updatedUser == null) return NotFound(new ApiResponse<string>(false, "User not found", null));
 
             var response = _mapper.Map<UserResponseDto>(updatedUser);

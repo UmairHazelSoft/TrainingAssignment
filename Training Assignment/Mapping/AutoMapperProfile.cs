@@ -9,9 +9,12 @@ namespace Training_Assignment.Mapping
     {
         public AutoMapperProfile()
         {
-            CreateMap<CreateUserDto, User>();
-            CreateMap<UpdateUserDto, User>();
-            CreateMap<User, UserResponseDto>();
+            CreateMap<CreateUserDto, User>().ReverseMap(); 
+            CreateMap<UpdateUserDto, User>().ReverseMap();
+            CreateMap<User, UserResponseDto>().ReverseMap();
+            CreateMap<UserReadDto, UserResponseDto>().ReverseMap();
+            CreateMap<User, UserReadDto>().ReverseMap();
+
         }
     }
 

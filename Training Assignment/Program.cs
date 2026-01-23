@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Training_Assignment.Data;
-using Training_Assignment.Services;
+using Training_Assignment.Repositories;
+using Training_Assignment.Services.Implementation;
 using Training_Assignment.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,7 +47,9 @@ builder.Services.AddAuthentication(options =>
 
 
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IEmailSender, EmailSender>(); // Implement for demo
 
 
 
